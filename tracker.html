@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Streak Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="window" id="appWindow">
+      <div class="titlebar" id="titleBar">
+        <span>Streak Tracker</span>
+        <div>
+          <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+          <button class="close-btn" onclick="closeWindow()">×</button>
+        </div>
+      </div>
+      <div class="content">
+        <p class="warning">
+          ⚠️ Early Release – Use with caution, bugs may exist ⚠️
+        </p>
+        <div class="table-container">
+          <table id="job-table">
+            <tr>
+              <th>Job</th>
+              <th>Last Updated</th>
+              <th id="expires-header">Expires At</th>
+            </tr>
+            <tr data-job="Firefighter">
+              <td>Firefighter</td>
+              <td id="ff-last">-</td>
+              <td id="ff-expires">-</td>
+            </tr>
+            <tr data-job="RTS Ground">
+              <td>RTS Ground</td>
+              <td id="rts-ground-last">-</td>
+              <td id="rts-ground-expires">-</td>
+            </tr>
+            <tr data-job="RTS Aviator">
+              <td>RTS Aviator</td>
+              <td id="rts-aviator-last">-</td>
+              <td id="rts-aviator-expires">-</td>
+            </tr>
+            <tr data-job="Paramedic">
+              <td>Paramedic</td>
+              <td id="pm-last">-</td>
+              <td id="pm-expires">-</td>
+            </tr>
+          </table>
+        </div>
+
+        <div id="settings-panel">
+          <label
+            ><input type="checkbox" id="dark-mode-toggle-settings" /> Dark
+            Mode</label
+          >
+          <label
+            >Opacity:
+            <input
+              type="range"
+              id="opacity-slider-settings"
+              min="0.1"
+              max="1"
+              step="0.05"
+              value="1"
+          /></label>
+          <label
+            ><input type="checkbox" id="time-format-toggle" /> Use 24h
+            format</label
+          >
+          <hr class="separator" />
+          <label
+            >Manually edit job:
+            <select id="timestamp-job-select" class="select-style">
+              <option value="Firefighter">Firefighter</option>
+              <option value="RTS Ground">RTS Ground</option>
+              <option value="RTS Aviator">RTS Aviator</option>
+              <option value="Paramedic">Paramedic</option>
+            </select>
+          </label>
+          <button class="button-style" onclick="manualTimestampJob()">
+            Set Timestamp Now
+          </button>
+          <button class="button-style" onclick="manualResetJob()">
+            Reset Entry
+          </button>
+          <hr class="separator" />
+          <label>Show/Hide Jobs:</label>
+          <label
+            ><input
+              type="checkbox"
+              class="job-toggle"
+              data-job="Firefighter"
+              checked
+            />
+            Firefighter</label
+          >
+          <label
+            ><input
+              type="checkbox"
+              class="job-toggle"
+              data-job="RTS Ground"
+              checked
+            />
+            RTS Ground</label
+          >
+          <label
+            ><input
+              type="checkbox"
+              class="job-toggle"
+              data-job="RTS Aviator"
+              checked
+            />
+            RTS Aviator</label
+          >
+          <label
+            ><input
+              type="checkbox"
+              class="job-toggle"
+              data-job="Paramedic"
+              checked
+            />
+            Paramedic</label
+          >
+          <hr class="separator" />
+          <label>
+            <input type="checkbox" id="track-sotd-checkbox" /> Track to SOTD
+            change (experimental) </label
+          ><br />
+          <label
+            >Expiration format:
+            <select id="expires-format-select" class="select-style">
+              <option value="countdown">Time until expiration</option>
+              <option value="timestamp">Time of expiration</option>
+            </select> </label
+          ><br />
+          <label for="expirationInterval">Notification Interval:</label>
+          <select id="expirationInterval" class="select-style">
+            <option value="0">Notifications turned off</option>
+            <option value="5">5 min</option>
+            <option value="10" selected>10 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">60 min</option>
+          </select>
+          <hr class="separator" />
+          <div
+            id="settingsFooter"
+            style="
+              margin-top: 8px;
+              text-align: center;
+              font-size: 12px;
+              opacity: 0.7;
+            "
+          >
+            Found a bug? Contact Tyal#520266 ingame or tyal#1011 on Discord
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="reopenBtn" onclick="openWindow()">
+      Reopen Streak Tracker Window
+    </button>
+
+    <script src="script.js"></script>
+  </body>
+</html>
