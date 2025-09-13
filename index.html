@@ -14,150 +14,347 @@
           <button class="close-btn" onclick="closeWindow()">×</button>
         </div>
       </div>
-      <div class="content">
-        <p class="warning">
-          ⚠️ Early Release – Use with caution, bugs may exist ⚠️
-        </p>
-        <div class="table-container">
-          <table id="job-table">
-            <tr>
-              <th>Job</th>
-              <th>Last Updated</th>
-              <th id="expires-header">Expires At</th>
-            </tr>
-            <tr data-job="Firefighter">
-              <td>Firefighter</td>
-              <td id="ff-last">-</td>
-              <td id="ff-expires">-</td>
-            </tr>
-            <tr data-job="RTS Ground">
-              <td>RTS Ground</td>
-              <td id="rts-ground-last">-</td>
-              <td id="rts-ground-expires">-</td>
-            </tr>
-            <tr data-job="RTS Aviator">
-              <td>RTS Aviator</td>
-              <td id="rts-aviator-last">-</td>
-              <td id="rts-aviator-expires">-</td>
-            </tr>
-            <tr data-job="Paramedic">
-              <td>Paramedic</td>
-              <td id="pm-last">-</td>
-              <td id="pm-expires">-</td>
-            </tr>
-          </table>
-        </div>
+      <div id="content-container">
+        <div class="content">
+          <div class="table-container" id="tableContainer">
+            <table id="job-table">
+              <tr>
+                <th>Job</th>
+                <th>Last Updated</th>
+                <th id="expires-header">Expires At</th>
+              </tr>
+              <tr data-job="Airline Pilot">
+                <td>Airline Pilot</td>
+                <td id="airline-pilot-last">-</td>
+                <td id="airline-pilot-expires">-</td>
+              </tr>
+              <tr data-job="Cabbie">
+                <td>Cabbie</td>
+                <td id="cabbie-last">-</td>
+                <td id="cabbie-expires">-</td>
+              </tr>
+              <tr data-job="Conductor">
+                <td>Conductor</td>
+                <td id="conductor-last">-</td>
+                <td id="conductor-expires">-</td>
+              </tr>
+              <tr data-job="Firefighter">
+                <td>Firefighter</td>
+                <td id="ff-last">-</td>
+                <td id="ff-expires">-</td>
+              </tr>
+              <tr data-job="Garbage Collector">
+                <td>Garbage Collector</td>
+                <td id="garbage-collector-last">-</td>
+                <td id="garbage-collector-expires">-</td>
+              </tr>
+              <tr data-job="Heli Pilot">
+                <td>Heli Pilot</td>
+                <td id="heli-pilot-last">-</td>
+                <td id="heli-pilot-expires">-</td>
+              </tr>
+              <tr data-job="Mechanic">
+                <td>Mechanic</td>
+                <td id="mechanic-last">-</td>
+                <td id="mechanic-expires">-</td>
+              </tr>
+              <tr data-job="Paramedic">
+                <td>Paramedic</td>
+                <td id="pm-last">-</td>
+                <td id="pm-expires">-</td>
+              </tr>
+              <tr data-job="RTS Aviator">
+                <td>RTS Aviator</td>
+                <td id="rts-aviator-last">-</td>
+                <td id="rts-aviator-expires">-</td>
+              </tr>
+              <tr data-job="RTS Ground">
+                <td>RTS Ground</td>
+                <td id="rts-ground-last">-</td>
+                <td id="rts-ground-expires">-</td>
+              </tr>
+              <tr data-job="Bus Driver">
+                <td>Bus Driver</td>
+                <td id="bus-driver-last">-</td>
+                <td id="bus-driver-expires">-</td>
+              </tr>
+              <tr data-job="Pot Fishing">
+                <td>Pot Fishing</td>
+                <td id="pot-fishing-last">-</td>
+                <td id="pot-fishing-expires">-</td>
+              </tr>
+              <tr data-job="Hunting">
+                <td>Hunting (Manual)</td>
+                <td id="hunting-last">-</td>
+                <td id="hunting-expires">-</td>
+              </tr>
+            </table>
+          </div>
 
-        <div id="settings-panel">
-          <label
-            ><input type="checkbox" id="dark-mode-toggle-settings" /> Dark
-            Mode</label
-          >
-          <label
-            >Opacity:
-            <input
-              type="range"
-              id="opacity-slider-settings"
-              min="0.1"
-              max="1"
-              step="0.05"
-              value="1"
-          /></label>
-          <label
-            ><input type="checkbox" id="time-format-toggle" /> Use 24h
-            format</label
-          >
-          <hr class="separator" />
-          <label
-            >Manually edit job:
-            <select id="timestamp-job-select" class="select-style">
-              <option value="Firefighter">Firefighter</option>
-              <option value="RTS Ground">RTS Ground</option>
-              <option value="RTS Aviator">RTS Aviator</option>
-              <option value="Paramedic">Paramedic</option>
+          <div id="settings-panel">
+            <label
+              ><input type="checkbox" id="dark-mode-toggle-settings" /> Dark
+              Mode</label
+            >
+            <label
+              >Opacity:
+              <input
+                type="range"
+                id="opacity-slider-settings"
+                min="0.1"
+                max="1"
+                step="0.05"
+                value="1"
+            /></label>
+            <label
+              ><input type="checkbox" id="time-format-toggle" /> Use 24h
+              format</label
+            >
+            <hr class="separator" />
+            <label
+              >Manually edit selected job:
+              <select id="timestamp-job-select" class="select-style">
+                <option value="Airline Pilot">Airline Pilot</option>
+                <option value="Cabbie">Cabbie</option>
+                <option value="Conductor">Conductor</option>
+                <option value="Firefighter">Firefighter</option>
+                <option value="Garbage Collector">Garbage Collector</option>
+                <option value="Heli Pilot">Heli Pilot</option>
+                <option value="Mechanic">Mechanic</option>
+                <option value="Paramedic">Paramedic</option>
+                <option value="RTS Aviator">RTS Aviator</option>
+                <option value="RTS Ground">RTS Ground</option>
+                <option value="Bus Driver">Bus Driver</option>
+                <option value="Pot Fishing">Pot Fishing</option>
+                <option value="Hunting">Hunting (Manual)</option>
+              </select>
+            </label>
+            <button class="button-style" onclick="manualTimestampJob()">
+              Set Timestamp Now
+            </button>
+            <button class="button-style" onclick="manualResetJob()">
+              Reset Entry
+            </button>
+            <hr class="separator" />
+            <label>Show/Hide Jobs:</label>
+            <div class="job-columns">
+              <ul class="job-list">
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Airline Pilot"
+                      checked
+                    />
+                    Airline Pilot</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Cabbie"
+                      checked
+                    />
+                    Cabbie</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Conductor"
+                      checked
+                    />
+                    Conductor</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Firefighter"
+                      checked
+                    />
+                    Firefighter</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Garbage Collector"
+                      checked
+                    />
+                    Garbage Collector</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Heli Pilot"
+                      checked
+                    />
+                    Heli Pilot</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Mechanic"
+                      checked
+                    />
+                    Mechanic</label
+                  >
+                </li>
+              </ul>
+
+              <ul class="job-list second-list">
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Paramedic"
+                      checked
+                    />
+                    Paramedic</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="RTS Aviator"
+                      checked
+                    />
+                    RTS Aviator</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="RTS Ground"
+                      checked
+                    />
+                    RTS Ground</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Bus Driver"
+                      checked
+                    />
+                    Bus Driver</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Pot Fishing"
+                      checked
+                    />
+                    Pot Fishing</label
+                  >
+                </li>
+                <li>
+                  <label
+                    ><input
+                      type="checkbox"
+                      class="job-toggle"
+                      data-job="Hunting"
+                      checked
+                    />
+                    Hunting (Manual)
+                    <span class="tooltip"
+                      >?
+                      <span class="tooltip-text tooltip-left"
+                        >I’m too dumb to add automatic tracking for hunting YET.
+                        Despite that, it’s visible, so you can use “Manually
+                        edit selected job” and “Set Timestamp Now” to track the
+                        time of completion.</span
+                      >
+                    </span></label
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <hr class="separator" />
+
+            <label>
+              <input type="checkbox" id="track-sotd-checkbox" /> Track to SOTD
+              change
+              <span class="tooltip"
+                >?
+                <span class="tooltip-text"
+                  >Streaks do not expire exactly 48 hours after a job is
+                  completed; they expire at the first SOTD change after 48 hours
+                  have passed. In practice, streaks can last up to 72 hours if
+                  completed immediately after the SOTD change!</span
+                >
+              </span></label
+            >
+            <label>
+              <input type="checkbox" id="always-on-top-checkbox" /> Always on
+              top
+              <span class="tooltip"
+                >?
+                <span class="tooltip-text"
+                  >Enabling this option keeps the app visible at all times, even
+                  when you are focused on another user app tab!</span
+                >
+              </span></label
+            ><br />
+            <label
+              >Expiration format:
+              <select id="expires-format-select" class="select-style">
+                <option value="countdown">Time until expiration</option>
+                <option value="timestamp">Time of expiration</option>
+              </select>
+            </label>
+            <label for="expirationInterval">Notification Interval:</label>
+            <select id="expirationInterval" class="select-style">
+              <option value="0">Notifications turned off</option>
+              <option value="5">5 min</option>
+              <option value="10" selected>10 min</option>
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="60">60 min</option>
             </select>
-          </label>
-          <button class="button-style" onclick="manualTimestampJob()">
-            Set Timestamp Now
-          </button>
-          <button class="button-style" onclick="manualResetJob()">
-            Reset Entry
-          </button>
-          <hr class="separator" />
-          <label>Show/Hide Jobs:</label>
-          <label
-            ><input
-              type="checkbox"
-              class="job-toggle"
-              data-job="Firefighter"
-              checked
-            />
-            Firefighter</label
-          >
-          <label
-            ><input
-              type="checkbox"
-              class="job-toggle"
-              data-job="RTS Ground"
-              checked
-            />
-            RTS Ground</label
-          >
-          <label
-            ><input
-              type="checkbox"
-              class="job-toggle"
-              data-job="RTS Aviator"
-              checked
-            />
-            RTS Aviator</label
-          >
-          <label
-            ><input
-              type="checkbox"
-              class="job-toggle"
-              data-job="Paramedic"
-              checked
-            />
-            Paramedic</label
-          >
-          <hr class="separator" />
-          <label>
-            <input type="checkbox" id="track-sotd-checkbox" /> Track to SOTD
-            change (experimental) </label
-          ><br />
-          <label
-            >Expiration format:
-            <select id="expires-format-select" class="select-style">
-              <option value="countdown">Time until expiration</option>
-              <option value="timestamp">Time of expiration</option>
-            </select> </label
-          ><br />
-          <label for="expirationInterval">Notification Interval:</label>
-          <select id="expirationInterval" class="select-style">
-            <option value="0">Notifications turned off</option>
-            <option value="5">5 min</option>
-            <option value="10" selected>10 min</option>
-            <option value="15">15 min</option>
-            <option value="30">30 min</option>
-            <option value="60">60 min</option>
-          </select>
-          <hr class="separator" />
-          <div
-            id="settingsFooter"
-            style="
-              margin-top: 8px;
-              text-align: center;
-              font-size: 12px;
-              opacity: 0.7;
-            "
-          >
-            Found a bug? Contact Tyal#520266 ingame or tyal#1011 on Discord
+            <hr class="separator" />
+            <div
+              id="settingsFooter"
+              style="
+                margin-top: 8px;
+                text-align: center;
+                font-size: 12px;
+                opacity: 0.7;
+              "
+            >
+              Found a bug? Contact Tyal#520266 ingame or tyal#1011 on Discord
+            </div>
           </div>
         </div>
       </div>
     </div>
-
     <button id="reopenBtn" onclick="openWindow()">
       Reopen Streak Tracker Window
     </button>
