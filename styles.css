@@ -379,3 +379,12 @@ hr.separator {
 #appWindow, #reopenBtn {
   display: none;
 }
+#reopenBtn {
+  width: 190px;     /* fixed width */
+  height: 28px;     /* fixed height */
+  min-width: 190px;
+  min-height: 28px;
+  max-width: 19px;
+  max-height: 28px;
+  position: absolute; /* keep it positioned independently */
+}
