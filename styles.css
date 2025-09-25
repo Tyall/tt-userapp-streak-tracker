@@ -21,7 +21,7 @@ body.dark {
   left: 50%;
   transform: translateX(-50%);
   width: 500px;
-  min-width: 400px;
+  min-width: 370px;
   max-width: 90vw;
   min-height: 100px;
   max-height: 90vh;
@@ -198,7 +198,7 @@ table {
 
 th,
 td {
-  padding: 0.4em 0.6em;
+  padding: 0.3em 0.4em;
   font-size: 0.9em;
   text-align: left;
   overflow: hidden;
@@ -292,10 +292,10 @@ hr.separator {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* added shadow */
 }
 .tooltip-left {
-  bottom: auto;         /* reset top positioning */
-  left: auto;           /* reset horizontal centering */
-  top: 50%;             /* center vertically */
-  right: 125%;          /* move it to the left */
+  bottom: auto; /* reset top positioning */
+  left: auto; /* reset horizontal centering */
+  top: 50%; /* center vertically */
+  right: 125%; /* move it to the left */
   transform: translateY(-50%);
 }
 .tooltip:hover .tooltip-text {
@@ -337,7 +337,7 @@ hr.separator {
 .job-columns {
   display: flex;
   justify-content: flex-start; /* keep lists from stretching too far apart */
-  gap: 110px; /* controls horizontal spacing between the two lists */
+  gap: 15%; /* controls horizontal spacing between the two lists */
 }
 
 .job-columns ul {
@@ -369,4 +369,13 @@ hr.separator {
 
 .second-list {
   margin-left: auto;
+}
+
+#dragHandle {
+  cursor: move;
+  margin-left: 8px;
+  user-select: none;
+}
+#appWindow, #reopenBtn {
+  display: none;
 }

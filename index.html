@@ -20,7 +20,7 @@
             <table id="job-table">
               <tr>
                 <th>Job</th>
-                <th>Last Updated</th>
+                <th id="header-last">Last Updated</th>
                 <th id="expires-header">Expires At</th>
               </tr>
               <tr data-job="Airline Pilot">
@@ -322,6 +322,10 @@
                   when you are focused on another user app tab!</span
                 >
               </span></label
+            >
+            <label>
+              <input type="checkbox" id="hide-last-done-checkbox" /> Hide 'Last
+              Updated' column </label
             ><br />
             <label
               >Expiration format:
@@ -356,7 +360,8 @@
       </div>
     </div>
     <button id="reopenBtn" onclick="openWindow()">
-      Reopen Streak Tracker Window
+      Reopen Streak Tracker
+      <span id="dragHandle" class="dragHandle">⠿</span>
     </button>
 
     <script src="script.js"></script>

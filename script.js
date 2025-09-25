@@ -11,6 +11,7 @@ const tableContainer = document.getElementById("tableContainer");
 const settingsFooter = document.getElementById("settingsFooter");
 const settingsPanel = document.getElementById("settings-panel");
 const reopenBtn = document.getElementById("reopenBtn");
+const dragHandle = document.getElementById("dragHandle");
 const expiresHeader = document.getElementById("expires-header");
 
 // Job cells map
@@ -33,13 +34,18 @@ const jobCells = {
 const jobToggles = document.querySelectorAll(".job-toggle");
 
 // Settings controls
-const darkModeToggleSettings = document.getElementById("dark-mode-toggle-settings");
-const opacitySliderSettings = document.getElementById("opacity-slider-settings");
+const darkModeToggleSettings = document.getElementById(
+  "dark-mode-toggle-settings"
+);
+const opacitySliderSettings = document.getElementById(
+  "opacity-slider-settings"
+);
 const timeFormatToggle = document.getElementById("time-format-toggle");
 const timestampJobSelect = document.getElementById("timestamp-job-select");
 const expiresFormatSelect = document.getElementById("expires-format-select");
 const trackSOTDCheckbox = document.getElementById("track-sotd-checkbox");
 const alwaysOnTopCheckbox = document.getElementById("always-on-top-checkbox");
+const hideLastDoneCheckbox = document.getElementById("hide-last-done-checkbox");
 
 /* --------------------------
    State & persistence
@@ -62,8 +68,14 @@ let state = {
   alwaysOnTop: false,
   windowPos: { left: 100, top: 100 },
   windowSize: { width: 500, height: 300 },
+  reopenBtnPos: { left: 200, top: 200 },
   fontScale: 1,
+    userClosed: false, // persist last UI choice
 };
+
+// Runtime flags (do NOT persist)
+let isTabbed = true;
+let userClosed = false;
 
 function save() {
   try {
@@ -97,7 +109,9 @@ function load() {
    Jobs helper
 -------------------------- */
 function getJobsList() {
-  return Array.from(document.querySelectorAll("tr[data-job]")).map((row) => row.dataset.job);
+  return Array.from(document.querySelectorAll("tr[data-job]")).map(
+    (row) => row.dataset.job
+  );
 }
 
 function ensureVisibleJobs() {
@@ -113,7 +127,8 @@ function saveControlsToState() {
   if (!settingsPanel) return;
 
   settingsPanel.querySelectorAll("input, select").forEach((el) => {
-    if (el.type === "checkbox") state[el.id || el.dataset.job || el.name] = el.checked;
+    if (el.type === "checkbox")
+      state[el.id || el.dataset.job || el.name] = el.checked;
     else if (el.type === "radio") {
       if (el.checked) state[el.name] = el.value;
     } else if (el.type === "range") state[el.id] = parseFloat(el.value);
@@ -131,7 +146,8 @@ function restoreControlsFromState() {
   if (!settingsPanel) return;
 
   settingsPanel.querySelectorAll("input, select").forEach((el) => {
-    if (el.type === "checkbox") el.checked = !!state[el.id || el.dataset.job || el.name];
+    if (el.type === "checkbox")
+      el.checked = !!state[el.id || el.dataset.job || el.name];
     else if (el.type === "radio") el.checked = state[el.name] === el.value;
     else if (el.type === "range") el.value = state[el.id] ?? el.value;
     else el.value = state[el.id] ?? el.value;
@@ -143,8 +159,12 @@ function restoreControlsFromState() {
 }
 
 if (settingsPanel) {
-  settingsPanel.querySelectorAll("input, select").forEach((el) => el.addEventListener("change", saveControlsToState));
-  jobToggles.forEach((chk) => chk.addEventListener("change", saveControlsToState));
+  settingsPanel
+    .querySelectorAll("input, select")
+    .forEach((el) => el.addEventListener("change", saveControlsToState));
+  jobToggles.forEach((chk) =>
+    chk.addEventListener("change", saveControlsToState)
+  );
 }
 
 /* --------------------------
@@ -167,7 +187,11 @@ function formatLastUpdated(ts) {
   const d = new Date(ts);
   if (isNaN(d.getTime())) return "-";
 
-  const dayMonth = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+  const dayMonth = `${d.getDate().toString().padStart(2, "0")}/${(
+    d.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}`;
   let hours = d.getHours();
   const minutes = d.getMinutes().toString().padStart(2, "0");
   const seconds = d.getSeconds().toString().padStart(2, "0");
@@ -178,7 +202,9 @@ function formatLastUpdated(ts) {
   } else {
     const ampm = hours >= 12 ? "PM" : "AM";
     const displayHour = hours % 12 || 12;
-    return `${dayMonth} ${displayHour.toString().padStart(2, "0")}:${minutes}:${seconds} ${ampm}`;
+    return `${dayMonth} ${displayHour
+      .toString()
+      .padStart(2, "0")}:${minutes}:${seconds} ${ampm}`;
   }
 }
 
@@ -192,7 +218,16 @@ function getExpiryFromTimestamp(ts) {
   if (isNaN(lastUpdate.getTime())) return null;
 
   if (state.trackSOTD) {
-    const nextUTC0 = new Date(Date.UTC(lastUpdate.getUTCFullYear(), lastUpdate.getUTCMonth(), lastUpdate.getUTCDate() + 1, 0, 0, 0));
+    const nextUTC0 = new Date(
+      Date.UTC(
+        lastUpdate.getUTCFullYear(),
+        lastUpdate.getUTCMonth(),
+        lastUpdate.getUTCDate() + 1,
+        0,
+        0,
+        0
+      )
+    );
     return nextUTC0.getTime() + 48 * 3600 * 1000;
   } else {
     return lastUpdate.getTime() + 48 * 3600 * 1000;
@@ -277,7 +312,18 @@ function applyUI() {
     }
   });
 
-  if (expiresHeader) expiresHeader.textContent = state.expiresFormat === "timestamp" ? "Time of expiration" : "Time until expiration";
+  const lastHeader = document.getElementById("last-done-header");
+  if (lastHeader) lastHeader.style.display = state.hideLastDone ? "none" : "";
+
+  document.querySelectorAll("[id$='-last']").forEach((td) => {
+    td.style.display = state.hideLastDone ? "none" : "";
+  });
+
+  if (expiresHeader)
+    expiresHeader.textContent =
+      state.expiresFormat === "timestamp"
+        ? "Time of expiration"
+        : "Time until expiration";
 
   document.body.classList.toggle("dark", state.darkMode);
   appWindow?.classList.toggle("dark", state.darkMode);
@@ -288,6 +334,9 @@ function applyUI() {
   if (timeFormatToggle) timeFormatToggle.checked = !!state.use24h;
   if (expiresFormatSelect) expiresFormatSelect.value = state.expiresFormat;
 
+  if (appWindow) {
+    appWindow.style.minWidth = state.hideLastDone ? "250px" : "370px";
+  }
   if (appWindow) appWindow.style.opacity = state.opacity ?? 1;
   updateReopenButton();
 
@@ -312,7 +361,8 @@ function processQueue(method) {
   const fn = methodQueues[method].shift();
   if (fn) fn();
   methodCooldowns[method] = Date.now() + 10000;
-  if (methodQueues[method].length > 0) setTimeout(() => processQueue(method), 10000);
+  if (methodQueues[method].length > 0)
+    setTimeout(() => processQueue(method), 10000);
 }
 
 function safeTrigger(fn, method, jobName) {
@@ -321,11 +371,25 @@ function safeTrigger(fn, method, jobName) {
 }
 
 function triggerMessage(jobName) {
-  window.parent.postMessage({ type: "message", title: "Streak Expiring Soon!", text: `Your Streak for ~y~${jobName}~w~ will expire in less than ~y~12 hours!` }, "*");
+  window.parent.postMessage(
+    {
+      type: "message",
+      title: "Streak Expiring Soon!",
+      text: `Your Streak for ~y~${jobName}~w~ will expire in less than ~y~12 hours!`,
+    },
+    "*"
+  );
 }
 
 function triggerPopup(jobName) {
-  window.parent.postMessage({ type: "popup", title: "Critical - Streak Expiring Soon!", text: `Your Streak for ~r~${jobName}~w~ will expire in less than ~r~an hour!` }, "*");
+  window.parent.postMessage(
+    {
+      type: "popup",
+      title: "Critical - Streak Expiring Soon!",
+      text: `Your Streak for ~r~${jobName}~w~ will expire in less than ~r~an hour!`,
+    },
+    "*"
+  );
 }
 
 function clearExpiredTimestamps() {
@@ -395,31 +459,78 @@ function toggleSettings() {
   } else {
     settingsPanel.style.display = "block";
 
-    const totalRequiredHeight = titleBar.offsetHeight + tableContainer.offsetHeight + settingsFooter.offsetHeight + settingsPanel.scrollHeight + 20;
-    if (totalRequiredHeight > appWindow.clientHeight) appWindow.style.height = totalRequiredHeight + "px";
+    const totalRequiredHeight =
+      titleBar.offsetHeight +
+      tableContainer.offsetHeight +
+      settingsFooter.offsetHeight +
+      settingsPanel.scrollHeight +
+      20;
+    if (totalRequiredHeight > appWindow.clientHeight)
+      appWindow.style.height = totalRequiredHeight + "px";
     updateSettingsMaxHeight();
     settingsPanel.scrollTop = 0;
   }
 }
 
-if (darkModeToggleSettings) darkModeToggleSettings.addEventListener("change", (e) => { state.darkMode = e.target.checked; applyUI(); save(); });
-if (opacitySliderSettings) opacitySliderSettings.addEventListener("input", (e) => { state.opacity = parseFloat(e.target.value); applyUI(); save(); });
-if (timeFormatToggle) timeFormatToggle.addEventListener("change", (e) => { state.use24h = e.target.checked; applyUI(); save(); });
-if (expiresFormatSelect) expiresFormatSelect.addEventListener("change", (e) => { state.expiresFormat = e.target.value; applyUI(); save(); });
+if (darkModeToggleSettings)
+  darkModeToggleSettings.addEventListener("change", (e) => {
+    state.darkMode = e.target.checked;
+    applyUI();
+    save();
+  });
+if (opacitySliderSettings)
+  opacitySliderSettings.addEventListener("input", (e) => {
+    state.opacity = parseFloat(e.target.value);
+    applyUI();
+    save();
+  });
+if (timeFormatToggle)
+  timeFormatToggle.addEventListener("change", (e) => {
+    state.use24h = e.target.checked;
+    applyUI();
+    save();
+  });
+if (expiresFormatSelect)
+  expiresFormatSelect.addEventListener("change", (e) => {
+    state.expiresFormat = e.target.value;
+    applyUI();
+    save();
+  });
 
 if (trackSOTDCheckbox) {
   trackSOTDCheckbox.checked = !!state.trackSOTD;
-  trackSOTDCheckbox.addEventListener("change", (e) => { state.trackSOTD = e.target.checked; applyUI(); save(); });
+  trackSOTDCheckbox.addEventListener("change", (e) => {
+    state.trackSOTD = e.target.checked;
+    applyUI();
+    save();
+  });
 }
 if (alwaysOnTopCheckbox) {
   alwaysOnTopCheckbox.checked = !!state.alwaysOnTop;
-  alwaysOnTopCheckbox.addEventListener("change", (e) => { state.alwaysOnTop = e.target.checked; applyUI(); save(); });
+  alwaysOnTopCheckbox.addEventListener("change", (e) => {
+    state.alwaysOnTop = e.target.checked;
+    applyUI();
+    save();
+
+    // When turning alwaysOnTop ON, just restore whatever was last shown
+    updateReopenButton();
+  });
 }
 if (timestampJobSelect) {
   timestampJobSelect.value = state.timestampJob || timestampJobSelect.value;
-  timestampJobSelect.addEventListener("change", (e) => { state.timestampJob = e.target.value; save(); });
+  timestampJobSelect.addEventListener("change", (e) => {
+    state.timestampJob = e.target.value;
+    save();
+  });
 }
-
+if (hideLastDoneCheckbox) {
+  hideLastDoneCheckbox.checked = !!state.hideLastDone;
+  hideLastDoneCheckbox.addEventListener("change", (e) => {
+    state.hideLastDone = e.target.checked;
+    applyUI();
+    save();
+  });
+}
 // Job toggles - set initial and persist
 document.querySelectorAll(".job-toggle").forEach((chk) => {
   chk.checked = state.visibleJobs[chk.dataset.job] ?? true;
@@ -449,21 +560,30 @@ function manualResetJob() {
 }
 
 /* --------------------------
-   Drag / window position
+   Drag main app window
 -------------------------- */
-let drag = false, offsetX = 0, offsetY = 0;
+let dragApp = false,
+  offsetAppX = 0,
+  offsetAppY = 0;
 if (titleBar && appWindow) {
   titleBar.addEventListener("mousedown", (e) => {
-    drag = true;
-    offsetX = e.clientX - appWindow.offsetLeft;
-    offsetY = e.clientY - appWindow.offsetTop;
+    dragApp = true;
+    offsetAppX = e.clientX - appWindow.offsetLeft;
+    offsetAppY = e.clientY - appWindow.offsetTop;
     document.body.style.userSelect = "none";
   });
 }
 
+document.addEventListener("mousemove", (e) => {
+  if (dragApp && appWindow) {
+    appWindow.style.left = e.clientX - offsetAppX + "px";
+    appWindow.style.top = e.clientY - offsetAppY + "px";
+  }
+});
+
 document.addEventListener("mouseup", () => {
-  if (drag) {
-    drag = false;
+  if (dragApp) {
+    dragApp = false;
     document.body.style.userSelect = "auto";
     if (appWindow) {
       state.windowPos.left = appWindow.offsetLeft;
@@ -473,23 +593,76 @@ document.addEventListener("mouseup", () => {
   }
 });
 
+/* --------------------------
+   Drag / reopen button logic with persistence
+-------------------------- */
+
+let dragBtn = false;
+let startX = 0,
+  startY = 0;
+let btnWasDragged = false;
+
+dragHandle.addEventListener("mousedown", (e) => {
+  e.stopPropagation();
+  e.preventDefault(); // stop text selection
+
+  dragBtn = true;
+  btnWasDragged = false;
+  startX = e.clientX;
+  startY = e.clientY;
+
+  // Preserve button size
+  const rect = reopenBtn.getBoundingClientRect();
+  reopenBtn.style.width = rect.width + "px";
+  reopenBtn.style.height = rect.height + "px";
+  reopenBtn.style.position = "absolute";
+
+  document.body.style.userSelect = "none";
+});
+
 document.addEventListener("mousemove", (e) => {
-  if (drag && appWindow) {
-    appWindow.style.left = e.clientX - offsetX + "px";
-    appWindow.style.top = e.clientY - offsetY + "px";
+  if (!dragBtn) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  if (Math.abs(dx) > 2 || Math.abs(dy) > 2) btnWasDragged = true;
+
+  reopenBtn.style.left = reopenBtn.offsetLeft + dx + "px";
+  reopenBtn.style.top = reopenBtn.offsetTop + dy + "px";
+
+  startX = e.clientX;
+  startY = e.clientY;
+});
+
+document.addEventListener("mouseup", () => {
+  if (!dragBtn) return;
+  dragBtn = false;
+  document.body.style.userSelect = "auto";
+
+  if (btnWasDragged) {
+    // Save button position
+    state.reopenBtnPos = {
+      left: reopenBtn.offsetLeft,
+      top: reopenBtn.offsetTop,
+    };
+    save();
+
+    // Prevent click if dragged
+    const preventClick = (clickEvent) => {
+      clickEvent.stopImmediatePropagation();
+      clickEvent.preventDefault();
+      reopenBtn.removeEventListener("click", preventClick, true);
+    };
+    reopenBtn.addEventListener("click", preventClick, true);
+    btnWasDragged = false;
   }
 });
 
-/* --------------------------
-   Reopen / close
--------------------------- */
-function openWindow() {
-  if (!appWindow) return;
-  appWindow.style.display = "block";
-  restoreAppState();
-  updateReopenButton();
-  appWindow.style.height = "auto";
-}
+// Only trigger openWindow if button wasn't dragged
+reopenBtn.addEventListener("click", () => {
+  openWindow();
+});
 
 function restoreAppState() {
   load();
@@ -509,6 +682,17 @@ function restoreAppState() {
     appWindow.style.height = state.windowSize.height + "px";
   }
 
+  if (state.reopenBtnPos) {
+    // Freeze current CSS size first
+    const style = getComputedStyle(reopenBtn);
+    reopenBtn.style.width = style.width;
+    reopenBtn.style.height = style.height;
+
+    // Set absolute position
+    reopenBtn.style.position = "absolute";
+    reopenBtn.style.left = state.reopenBtnPos.left + "px";
+    reopenBtn.style.top = state.reopenBtnPos.top + "px";
+  }
   // Restore controls from state
   restoreControlsFromState();
 
@@ -518,17 +702,57 @@ function restoreAppState() {
   // Force scale/font adjustments
   adjustFontSize();
   updateSettingsMaxHeight();
+// Ensure correct startup state after restoring
+if (state.userClosed) {
+  if (appWindow) appWindow.style.display = "none";
+  if (reopenBtn) reopenBtn.style.display = "block";
+} else {
+  if (appWindow) appWindow.style.display = "block";
+  if (reopenBtn) reopenBtn.style.display = "none";
 }
+
+updateReopenButton();
+}
+
+/* --------------------------
+   Reopen / close
+-------------------------- */
 function closeWindow() {
   if (!appWindow) return;
   appWindow.style.display = "none";
+  state.userClosed = true;
+  save();
   updateReopenButton();
+}
+
+function openWindow() {
+  if (!appWindow) return;
+  appWindow.style.display = "block";
+  restoreAppState();
+  state.userClosed = false;
+  save();
+  updateReopenButton();
+  appWindow.style.height = "auto";
 }
 
 function updateReopenButton() {
   if (!reopenBtn || !appWindow) return;
-  reopenBtn.style.display = appWindow.style.display === "none" ? "block" : "none";
+  const alwaysOnTop = alwaysOnTopCheckbox?.checked ?? false;
+
+  // If parent says "hide UI" and alwaysOnTop is NOT enabled → hide both
+  if (isTabbed === false && !alwaysOnTop) {
+    reopenBtn.style.display = "none";
+    return;
+  }
+
+  // Normal toggle behavior
+  if (appWindow.style.display === "block") {
+    reopenBtn.style.display = "none";
+  } else {
+    reopenBtn.style.display = "block";
+  }
 }
+
 if (reopenBtn) reopenBtn.addEventListener("click", openWindow);
 
 /* --------------------------
@@ -539,7 +763,11 @@ let currentJobCandidate = null;
 function logDebug(...args) {
   const logEl = document.getElementById("debug-log");
   if (!logEl) return;
-  const msg = args.map((a) => (typeof a === "object" ? JSON.stringify(a, null, 2) : String(a))).join(" | ");
+  const msg = args
+    .map((a) =>
+      typeof a === "object" ? JSON.stringify(a, null, 2) : String(a)
+    )
+    .join(" | ");
   logEl.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
   logEl.scrollTop = logEl.scrollHeight;
 }
@@ -555,14 +783,33 @@ window.addEventListener("message", (event) => {
 
   const alwaysOnTop = alwaysOnTopCheckbox?.checked ?? false;
   const canAutoShow = reopenBtn?.style.display !== "block";
-  if (typeof payload.data.tabbed === "boolean" && !alwaysOnTop && canAutoShow) {
-    if (appWindow) appWindow.style.display = payload.data.tabbed ? "block" : "none";
+  if (typeof payload.data.tabbed === "boolean") {
+    isTabbed = payload.data.tabbed;
+    const alwaysOnTop = alwaysOnTopCheckbox?.checked ?? false;
+
+    if (!alwaysOnTop) {
+      if (isTabbed) {
+        // Parent active → only show app if not userClosed
+        if (!userClosed && appWindow) appWindow.style.display = "block";
+      } else {
+        // Parent tabbed out → hide everything
+        if (appWindow) appWindow.style.display = "none";
+        if (reopenBtn) reopenBtn.style.display = "none";
+      }
+    }
+    // If alwaysOnTop → do nothing (preserve current state)
+
+    updateReopenButton();
   }
 
   try {
     if (typeof payload.data.status === "string") {
       let statusObj;
-      try { statusObj = JSON.parse(payload.data.status); } catch { statusObj = null; }
+      try {
+        statusObj = JSON.parse(payload.data.status);
+      } catch {
+        statusObj = null;
+      }
 
       if (statusObj && typeof statusObj === "object") {
         const titleRaw = (statusObj.title || "-").replace(/~\w~+/g, "");
@@ -572,25 +819,31 @@ window.addEventListener("message", (event) => {
         // job detection
         if (titleRaw.includes("R.T.S.")) currentJobCandidate = "RTS Aviator";
         else if (titleRaw.includes("RTS")) currentJobCandidate = "RTS Ground";
-        else if (titleLC.includes("firefighter")) currentJobCandidate = "Firefighter";
-        else if (titleLC.includes("paramedic")) currentJobCandidate = "Paramedic";
+        else if (titleLC.includes("firefighter"))
+          currentJobCandidate = "Firefighter";
+        else if (titleLC.includes("paramedic"))
+          currentJobCandidate = "Paramedic";
         else if (titleLC.includes("train")) currentJobCandidate = "Conductor";
-        else if (titleLC.includes("airline")) currentJobCandidate = "Airline Pilot";
+        else if (titleLC.includes("airline"))
+          currentJobCandidate = "Airline Pilot";
         else if (titleLC.includes("collins")) currentJobCandidate = "Cabbie";
-        else if (titleLC.includes("garbage")) currentJobCandidate = "Garbage Collector";
+        else if (titleLC.includes("garbage"))
+          currentJobCandidate = "Garbage Collector";
         else if (titleLC.includes("heli")) currentJobCandidate = "Heli Pilot";
         else if (titleLC.includes("mechanic")) currentJobCandidate = "Mechanic";
         else if (titleLC.includes("bus route")) {
           currentJobCandidate = "Bus Driver";
           // attempt to detect chain behaviour
-          const firstLine = statusObj.lines && statusObj.lines[0] ? statusObj.lines[0] : "";
+          const firstLine =
+            statusObj.lines && statusObj.lines[0] ? statusObj.lines[0] : "";
           const match = firstLine.match(busRegex);
           if (match) {
             const first = parseInt(match[1], 10);
             const second = parseInt(match[2], 10);
             if (!isNaN(first) && !isNaN(second) && second - first === 0) {
               busNotificationChainRelevant = true; // set correct flag
-              setTimeout(() => { //Timeout to avoid false flags
+              setTimeout(() => {
+                //Timeout to avoid false flags
                 busNotificationChainRelevant = false;
               }, 1000);
             }
@@ -604,28 +857,48 @@ window.addEventListener("message", (event) => {
       let relevant = false;
 
       // Common job notifications
-      if (((currentJobCandidate === "RTS Ground" || currentJobCandidate === "RTS Aviator") && /R\.T\.S\.?\s*Score:/i.test(notif)) ||
-          (currentJobCandidate === "Firefighter" && /Callout complete/i.test(notif)) ||
-          (currentJobCandidate === "Paramedic" && /Great job, earned/i.test(notif)) ||
-          (currentJobCandidate === "Conductor" && /Route Complete/i.test(notif)) ||
-          (currentJobCandidate === "Airline Pilot" && /Delivery Successful/i.test(notif)) ||
-          (currentJobCandidate === "Cabbie" && /Delivery Successful/i.test(notif)) ||
-          (currentJobCandidate === "Garbage Collector" && /Finished Route/i.test(notif)) ||
-          (currentJobCandidate === "Heli Pilot" && /Bonus Check/i.test(notif)) ||
-          (currentJobCandidate === "Mechanic" && /Delivery successful/i.test(notif))) {
+      if (
+        ((currentJobCandidate === "RTS Ground" ||
+          currentJobCandidate === "RTS Aviator") &&
+          /R\.T\.S\.?\s*Score:/i.test(notif)) ||
+        (currentJobCandidate === "Firefighter" &&
+          /Callout Successful/i.test(notif)) ||
+        (currentJobCandidate === "Paramedic" &&
+          /Great job, earned/i.test(notif)) ||
+        (currentJobCandidate === "Conductor" &&
+          /Route Complete/i.test(notif)) ||
+        (currentJobCandidate === "Airline Pilot" &&
+          /Delivery Successful/i.test(notif)) ||
+        (currentJobCandidate === "Cabbie" &&
+          /Delivery Successful/i.test(notif)) ||
+        (currentJobCandidate === "Garbage Collector" &&
+          /Finished Route/i.test(notif)) ||
+        (currentJobCandidate === "Heli Pilot" && /Bonus Check/i.test(notif)) ||
+        (currentJobCandidate === "Mechanic" &&
+          /Delivery successful/i.test(notif))
+      ) {
         relevant = true;
       }
 
       // Bus driver chain logic
-      if (currentJobCandidate === "Bus Driver" && busNotificationChainRelevant && /fare/i.test(notif)) {
+      if (
+        currentJobCandidate === "Bus Driver" &&
+        busNotificationChainRelevant &&
+        /fare/i.test(notif)
+      ) {
         busNotificationChainRelevant = false;
         relevant = true;
       }
 
       // Pot fishing logic (two-step)
-      if (!relevant && !potsNotificationChainRelevant && potsRegex.test(notif)) {
+      if (
+        !relevant &&
+        !potsNotificationChainRelevant &&
+        potsRegex.test(notif)
+      ) {
         potsNotificationChainRelevant = true;
-        setTimeout(() => { //Timeout to avoid false flags
+        setTimeout(() => {
+          //Timeout to avoid false flags
           potsNotificationChainRelevant = false;
         }, 350);
       } else if (potsNotificationChainRelevant && /Fishing/i.test(notif)) {
@@ -668,12 +941,18 @@ function setupPinShortcut() {
   function onKeyDown(e) {
     const tgt = e.target || e.srcElement;
     const tag = tgt && tgt.tagName && tgt.tagName.toUpperCase();
-    const isEditable = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tgt?.isContentEditable;
+    const isEditable =
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      tgt?.isContentEditable;
     if (isEditable) return;
     if (e.key === "Escape" || e.key === "Esc") {
       if (e.repeat) return;
       e.preventDefault();
-      try { window.parent.postMessage({ type: "pin" }, "*"); } catch {}
+      try {
+        window.parent.postMessage({ type: "pin" }, "*");
+      } catch {}
     }
   }
 
@@ -687,7 +966,10 @@ function setupPinShortcut() {
 const contentContainer = document.querySelector(".content");
 function adjustFontSize() {
   if (!appWindow || !contentContainer) return;
-  const scale = Math.min(appWindow.clientWidth / 500, appWindow.clientHeight / 100);
+  const scale = Math.min(
+    appWindow.clientWidth / 500,
+    appWindow.clientHeight / 100
+  );
   const fontSize = Math.max(0.8, scale);
   contentContainer.style.fontSize = `${fontSize}em`;
 
@@ -705,7 +987,14 @@ function adjustFontSize() {
 }
 
 function updateSettingsMaxHeight() {
-  if (!settingsPanel || !appWindow || !titleBar || !tableContainer || !settingsFooter) return;
+  if (
+    !settingsPanel ||
+    !appWindow ||
+    !titleBar ||
+    !tableContainer ||
+    !settingsFooter
+  )
+    return;
 
   settingsPanel.style.height = "auto";
   const windowHeight = appWindow.clientHeight;
@@ -713,7 +1002,12 @@ function updateSettingsMaxHeight() {
   const tableContainerHeight = tableContainer.offsetHeight;
   const settingsFooterHeight = settingsFooter.offsetHeight;
   const padding = 20;
-  const availableHeight = windowHeight - titleHeight - tableContainerHeight - settingsFooterHeight - padding;
+  const availableHeight =
+    windowHeight -
+    titleHeight -
+    tableContainerHeight -
+    settingsFooterHeight -
+    padding;
 
   settingsPanel.style.height = Math.max(availableHeight, 50) + "px";
 }
@@ -753,7 +1047,9 @@ window.onload = () => {
   if (intervalSelect) {
     intervalSelect.addEventListener("change", () => {
       if (expirationDebounce) clearTimeout(expirationDebounce);
-      expirationDebounce = setTimeout(() => { startExpirationWatcher(); }, 200);
+      expirationDebounce = setTimeout(() => {
+        startExpirationWatcher();
+      }, 200);
     });
   }
 
@@ -761,4 +1057,3 @@ window.onload = () => {
   if (settingsPanel) settingsPanel.style.display = "none";
   if (appWindow) appWindow.style.height = "auto";
 };
-
